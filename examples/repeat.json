@@ -1,0 +1,15 @@
+[
+    {
+        "Name": "Test",
+        "Cmd": "dir > d:\\tmpx\\test.task.txt",
+        "Start": "2020-04-29 16:00:00",
+        "Period": "minute"
+
+    },
+    {
+        "Name": "Test Gox",
+        "Cmd": "goxc -example basic.gox > d:\\tmpx\\test1.task.txt",
+        "Start": "2020-04-29 16:00:00",
+        "Period": "week"
+    }
+]

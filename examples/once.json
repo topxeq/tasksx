@@ -1,0 +1,10 @@
+[
+    {
+        "Name": "Test",
+        "Cmd": "dir > d:\\tmpx\\test.task.txt"
+    },
+    {
+        "Name": "Test Gox",
+        "Cmd": "goxc -example basic.gox > d:\\tmpx\\test1.task.txt"
+    }
+]
