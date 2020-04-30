@@ -318,6 +318,22 @@ func startHttpServer(portA string) {
 
 // }
 
+func doCmd(strA string) (string, error) {
+	var out bytes.Buffer
+
+	cmd := exec.Command("cmd", "/c", strA)
+
+	cmd.Stdout = &out
+	errT := cmd.Run()
+	if errT != nil {
+		return "", errT
+	}
+
+	rStrT := tk.Trim(out.String())
+
+	return rStrT, nil
+}
+
 func onceWork() {
 	pathT := filepath.Join(basePathG, "once.json")
 
@@ -336,7 +352,7 @@ func onceWork() {
 		return
 	}
 
-	tk.LogWithTimeCompact("JSON object: %T", objT)
+	// tk.LogWithTimeCompact("JSON object: %T", objT)
 
 	aryT, ok := objT.([]interface{})
 
@@ -352,26 +368,20 @@ func onceWork() {
 			continue
 		}
 
-		var out bytes.Buffer
-
 		cmdStrT, ok := v["Cmd"].(string)
 		if !ok {
 			tk.LogWithTimeCompact("invalid JSON item: %#v", vo)
 			continue
 		}
 
-		cmd := exec.Command("cmd", "/c", cmdStrT)
+		_, errT = doCmd(cmdStrT)
 
-		cmd.Stdout = &out
-		errT := cmd.Run()
 		if errT != nil {
-			tk.LogWithTimeCompact("failed to run cmd([%v] %v): %v", i, cmdStrT, errT)
+			tk.LogWithTimeCompact("failed to run once task cmd([%v] %v): %v", i, cmdStrT, errT)
 			continue
 		}
 
-		rStrT := tk.Trim(out.String())
-
-		tk.LogWithTimeCompact("Run [%v] (%v): %v", i, cmdStrT, rStrT)
+		tk.LogWithTimeCompact("Running once task [%v] (%v) completed.", i, cmdStrT)
 
 	}
 
@@ -421,49 +431,71 @@ func doTask(idxA int, taskA RepeatTask) {
 
 		diffT = timeNowT.Sub(lastTimesG[idxA])
 
-		tk.LogWithTimeCompact("[%v] %v: start time: %v, last time: %v, period: %v, diff: %v", idxA, taskA.Name, taskA.Start, lastTimesG[idxA], taskA.Period, diffT)
+		// tk.LogWithTimeCompact("[%v] %v: start time: %v, last time: %v, period: %v, diff: %v", idxA, taskA.Name, taskA.Start, lastTimesG[idxA], taskA.Period, diffT)
 
 		runFlagT := false
+
+		var basePeriodT time.Duration = 0
 
 		switch taskA.Period {
 		case "", "minute":
 
-			diffInT := diffT / time.Second / 60
+			basePeriodT = time.Second * 60
 
-			if diffInT >= 1 {
-				lastTimesG[idxA] = lastTimesG[idxA].Add(diffInT * time.Second * 60)
+		case "hour":
 
-				runFlagT = true
+			basePeriodT = time.Second * 60 * 60
+
+		case "day":
+
+			basePeriodT = time.Second * 60 * 60 * 24
+
+		case "week":
+
+			basePeriodT = time.Second * 60 * 60 * 24 * 7
+
+		default:
+
+			c, errT := tk.StrToInt(taskA.Period)
+
+			if (errT != nil) || (c <= 0) {
+				tk.LogWithTimeCompact("invalid period(%v) for [%v] %v", taskA.Period, idxA, taskA.Name)
+
+				return
+
 			}
 
-			tk.LogWithTimeCompact("diffInT: %d", diffInT)
-
-			// return int64(diffT / 1000000)
-		default:
-			tk.LogWithTimeCompact("invalid period(%v) for %v: %v", taskA.Period, taskA.Name, errT)
-
-			return
+			basePeriodT = time.Duration(c) * time.Second * 60
 
 		}
 
 		// taskA.Last = timeNowT
 
+		if basePeriodT <= 0 {
+			tk.LogWithTimeCompact("invalid period(%v) for [%v] %v", taskA.Period, idxA, taskA.Name)
+
+			return
+		}
+
+		diffInT := diffT / basePeriodT
+
+		if diffInT >= 1 {
+			lastTimesG[idxA] = lastTimesG[idxA].Add(diffInT * basePeriodT)
+
+			runFlagT = true
+		}
+
 		if runFlagT {
-			var out bytes.Buffer
+			_, errT = doCmd(taskA.Cmd)
 
-			cmd := exec.Command("cmd", "/c", taskA.Cmd)
-
-			cmd.Stdout = &out
-			errT := cmd.Run()
 			if errT != nil {
-				tk.LogWithTimeCompact("failed to run cmd([%v] %v): %v", idxA, taskA.Cmd, errT)
-				continue
+				tk.LogWithTimeCompact("failed to run repeat task cmd([%v] %v): %v", idxA, taskA.Cmd, errT)
+			} else {
+				tk.LogWithTimeCompact("Running repeat task [%v] (%v) completed.", idxA, taskA.Cmd)
 			}
 
-			rStrT := tk.Trim(out.String())
-
-			tk.LogWithTimeCompact("Run [%v] (%v): %v", idxA, taskA.Cmd, rStrT)
-
+		} else {
+			// tk.LogWithTimeCompact("skip diffInT: %d", diffInT)
 		}
 
 		tk.SleepSeconds(60)
@@ -496,18 +528,9 @@ func repeatWork() {
 
 	lastTimesG = make([]time.Time, len(repeatWorksG))
 
-	for true {
-		for i, v := range repeatWorksG {
-			// tk.LogWithTimeCompact("task %v: %v", i, &v)
-			go doTask(i, v)
-		}
-
-		// TXDownloadPage("http://topget.org/xanadu/xanaduapi.php?txreq=savethisip&name="+saveipNameG, "", nil, "", 30)
-
-		// tk.LogWithTimeCompact("repeat: %v", 01)
-		// break
-		// tk.SleepSeconds(60)
-		break
+	for i, v := range repeatWorksG {
+		// tk.LogWithTimeCompact("task %v: %v", i, &v)
+		go doTask(i, v)
 	}
 }
 

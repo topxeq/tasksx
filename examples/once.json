@@ -1,10 +1,10 @@
 [
     {
-        "Name": "Test",
-        "Cmd": "dir > d:\\tmpx\\test.task.txt"
+        "Name": "Once Test 1",
+        "Cmd": "dir c:\\ > d:\\tmpx\\testOnceTask1.txt"
     },
     {
-        "Name": "Test Gox",
-        "Cmd": "goxc -example basic.gox > d:\\tmpx\\test1.task.txt"
+        "Name": "Once Test 2",
+        "Cmd": "goxc -example basic.gox > d:\\tmpx\\testOnceTask2.txt"
     }
 ]

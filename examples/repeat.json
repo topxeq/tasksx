@@ -1,15 +1,21 @@
 [
     {
-        "Name": "Test",
-        "Cmd": "dir > d:\\tmpx\\test.task.txt",
+        "Name": "Test Repeat 1",
+        "Cmd": "dir c:\\windows > d:\\tmpx\\testRepeatTask1.txt",
         "Start": "2020-04-29 16:00:00",
-        "Period": "minute"
+        "Period": "week"
 
     },
     {
-        "Name": "Test Gox",
-        "Cmd": "goxc -example basic.gox > d:\\tmpx\\test1.task.txt",
+        "Name": "Test Repeat 2",
+        "Cmd": "goxc -example getCurrentTime.gox > d:\\tmpx\\testRepeatTask2.txt",
         "Start": "2020-04-29 16:00:00",
-        "Period": "week"
+        "Period": "minute"
+    },
+    {
+        "Name": "Test Repeat 3",
+        "Cmd": "time /t > d:\\tmpx\\testRepeatTask3.txt",
+        "Start": "2020-04-29 16:00:00",
+        "Period": "5"
     }
 ]
