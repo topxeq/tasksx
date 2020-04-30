@@ -124,6 +124,10 @@ If the base path is C:\tasksX, the log file path will be C:\tasksX\tasksX.log. T
 
 > tasksx stop
 
+- Remove the service
+
+> tasksx remove
+
 ## Development/Todo
 
 The program contains a tiny Web server and API server, but currently not used. The default port in 7489.
