@@ -9,6 +9,8 @@ Run the following command to install it as system-service.
 
 > tasksx install
 
+Note: You need administrator/root priviledge to do this and all the other service related operations(uninstall/reinstall/start/stop, etc).
+
 2. Find out the base path of the service by the following steps:
 
 - First check C:\tasksX in Windows and /tasksX in Linux/MacOS, if the directory exists and (maybe) there are some files in it, then the base path is the directory.
