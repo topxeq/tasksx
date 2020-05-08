@@ -321,13 +321,29 @@ func startHttpServer(portA string) {
 func doCmd(strA string) (string, error) {
 	var out bytes.Buffer
 
-	cmd := exec.Command("cmd", "/c", strA)
+	var errT error
 
-	cmd.Stdout = &out
-	errT := cmd.Run()
+	if tk.GetOSName() == "windows" {
+		cmd := exec.Command("cmd", "/c", strA)
+
+		cmd.Stdout = &out
+		errT = cmd.Run()
+	} else {
+		aryT, _ := tk.ParseCommandLine(strA)
+
+		cmd := exec.Command(aryT[0], aryT[1:]...)
+
+		cmd.Stdout = &out
+		errT = cmd.Run()
+	}
+
 	if errT != nil {
+		tk.LogWithTimeCompact("failed to run once task cmd(%v): %v", strA, errT)
+
 		return "", errT
 	}
+
+	tk.LogWithTimeCompact("Running once task (%v) completed.", strA)
 
 	rStrT := tk.Trim(out.String())
 
@@ -361,7 +377,7 @@ func onceWork() {
 		return
 	}
 
-	for i, vo := range aryT {
+	for _, vo := range aryT {
 		v, ok := vo.(map[string]interface{})
 		if !ok {
 			tk.LogWithTimeCompact("invalid JSON item: %#v", vo)
@@ -374,14 +390,7 @@ func onceWork() {
 			continue
 		}
 
-		_, errT = doCmd(cmdStrT)
-
-		if errT != nil {
-			tk.LogWithTimeCompact("failed to run once task cmd([%v] %v): %v", i, cmdStrT, errT)
-			continue
-		}
-
-		tk.LogWithTimeCompact("Running once task [%v] (%v) completed.", i, cmdStrT)
+		go doCmd(cmdStrT)
 
 	}
 
