@@ -320,6 +320,7 @@ func startHttpServer(portA string) {
 
 func doCmd(strA string) (string, error) {
 	var out bytes.Buffer
+	var errOut bytes.Buffer
 
 	var errT error
 
@@ -334,11 +335,12 @@ func doCmd(strA string) (string, error) {
 		cmd := exec.Command(aryT[0], aryT[1:]...)
 
 		cmd.Stdout = &out
+		cmd.Stderr = &errOut
 		errT = cmd.Run()
 	}
 
 	if errT != nil {
-		tk.LogWithTimeCompact("failed to run once task cmd(%v): %v", strA, errT)
+		tk.LogWithTimeCompact("failed to run once task cmd(%v), output: %v, stderr: %v, error: %v", strA, out.String(), errOut.String(), errT)
 
 		return "", errT
 	}
